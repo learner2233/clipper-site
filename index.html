@@ -1,38 +1,482 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-type="software" data-radius="soft" data-ground="sage" data-buttons="arrow" data-motion>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Clipper</title>
-<link rel="icon" href="icon-1024.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Clipper: a personal clipping app for gaming streams</title>
+<meta name="description" content="Clipper turns long YouTube, Twitch and Kick videos into captioned vertical clips on its owner's Mac, and posts only the clips its owner approves.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Clipper: a personal clipping app for gaming streams">
+<meta property="og:description" content="Captioned vertical clips from long gaming videos, made and posted from its owner's Mac.">
+<meta property="og:image" content="https://learner2233.github.io/clipper-site/share.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-1024.png" type="image/png">
+<meta name="theme-color" content="#161a2e">
+<link rel="canonical" href="https://learner2233.github.io/clipper-site/">
+<meta name="site-kind" content="software">
+<meta name="page-type" content="software">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wdth,wght@75..100,400..700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/system.css">
+<link rel="stylesheet" href="assets/ui/cards.css">
+<link rel="stylesheet" href="assets/motion/motion.css">
+<link rel="stylesheet" href="assets/backgrounds/backgrounds.css">
+<link rel="stylesheet" href="assets/layout/layout.css">
+<link rel="stylesheet" href="assets/icons/icon.css">
 <style>
-:root { --night: #161a2e; --panel: #20253d; --haze: #9aa0bd; --paper: #eef0f7; --sunset: #ff6b8b; color-scheme: dark; }
-* { box-sizing: border-box; }
-body { margin: 0; background: var(--night); color: var(--paper); font: 17px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
-main { max-width: 720px; margin: 0 auto; padding: 48px 20px 80px; }
-header { display: flex; align-items: center; gap: 14px; margin-bottom: 32px; }
-header img { width: 44px; height: 44px; border-radius: 10px; }
-header a { color: var(--paper); font-weight: 800; font-size: 1.2rem; text-decoration: none; }
-nav { margin-left: auto; display: flex; gap: 16px; font-size: 0.95rem; }
-nav a { color: var(--haze); font-weight: 400; font-size: 0.95rem; }
-h1 { font-size: 2.2rem; line-height: 1.15; margin: 0 0 8px; }
-h2 { font-size: 1.15rem; margin: 32px 0 6px; }
-p, li { color: #d5d8e6; }
-.meta { color: var(--haze); font-size: 0.9rem; }
-a { color: var(--sunset); }
+:root {
+  --p-bg: #161a2e; --p-surface: #20253d; --p-ink: #eef0f7; --p-muted: #a9aec8;
+  --p-accent: #ff6b8b; --p-accent-ink: #161a2e; --p-action: #ff6b8b; --p-action-ink: #161a2e;
+  --p-inv-bg: #eef0f7; --p-inv-surface: #dddfe7; --p-inv-ink: #161a2e; --p-inv-muted: #595d6e;
+  --p-inv-accent: #161a2e; --p-inv-accent-ink: #eef0f7; --p-inv-action: #161a2e; --p-inv-action-ink: #eef0f7;
+  --font-display: "Instrument Sans", system-ui, sans-serif;
+  --font-text: "Instrument Sans", system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --display-weight: 500;
+  --display-tracking: -0.028em;
+  --display-tracking-xl: -0.036em;
+  --display-stretch: 96%;
+  --ly-scale: 1.04;
+}
+</style>
+<link rel="stylesheet" href="assets/layout/demo.css">
+<link rel="stylesheet" href="assets/ui/base.css">
+<link rel="stylesheet" href="assets/ui/window/fragment.css">
+<link rel="stylesheet" href="assets/ui/doc/fragment.css">
+<link rel="stylesheet" href="assets/ui/checklist/fragment.css">
+<link rel="stylesheet" href="assets/ui/files/fragment.css">
+<link rel="stylesheet" href="assets/ui/notify/fragment.css">
+<link rel="stylesheet" href="assets/ui/chat/fragment.css">
+<link rel="stylesheet" href="assets/diagrams/diagram.css">
+<script>document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)</script>
+<script src="assets/backgrounds/backgrounds.js"></script>
+<script>document.documentElement.classList.add('mo-js');setTimeout(()=>document.documentElement.classList.add('mo-safe'),2500)</script>
+<link rel="modulepreload" href="assets/moments/moments.js">
+<link rel="modulepreload" href="assets/moments/lib.js">
+<link rel="modulepreload" href="assets/moments/letters-assemble/moment.js">
+<link rel="modulepreload" href="assets/moments/line-carries-colour/moment.js">
+<!-- page CSS: only inside visuals, plus one --p-h per card group -->
+<style>
+  /* the hero's collage: the window's rows without a time column, the result card at the frame's lower left */
+  .hero__art > .ly-piece--note { left: var(--s-6); bottom: var(--s-6); width: 300px; z-index: 2; }
+  .ly-piece--main .d-row { grid-template-columns: 36px minmax(0, 1fr) 40px 112px; }
+  .ly-piece--main .d-main { padding-right: var(--ly-cut-room); }
+  .ly-piece--main .d-row .d-thumb { display: grid; place-items: center; background: #f1f2f6; }
+  .ly-piece--main .d-row .d-thumb img { width: 20px; height: 20px; }
+  .d-note__line { display: flex; align-items: center; gap: 10px; padding: 7px 0; font-size: 13px; color: #3d4247; border-top: 1px solid rgb(0 0 0 / .06); }
+  .d-note__line:first-of-type { border-top: 0; }
+  .d-note__line i { width: 18px; height: 18px; border-radius: 50%; flex: none; display: grid; place-items: center; background: #e7f4ec; color: #17673f; font-style: normal; font-size: 13px; font-weight: 500; }
+  .d-note__line b { font-weight: 500; color: #16181a; }
+  .hero__proof { font-size: var(--t-small); color: var(--muted); }
+  /* the focus ring on the frame's light ground takes the ink, so the pause disc's ring reads */
+  .hero__art { --ink: #262d24; }
+  @media (max-width: 1023px) { .hero__art > .ly-piece--note { left: var(--s-4); bottom: var(--s-4); width: 270px; } }
+  @media (max-width: 1279px) { .ly-piece--main .d-side { display: none; } .ly-piece--main .d-win__body { grid-template-columns: minmax(0, 1fr); } .ly-piece--main .d-row:nth-child(n+5) { display: none; } }
+  @media (max-width: 639px) { .ly-piece--main .d-row { grid-template-columns: 36px minmax(0, 1fr) 112px; } .ly-piece--main .d-row .num { display: none; } .ly-piece--main .d-row:nth-child(n+4) { display: none; } }
+
+  /* app-frame (sections-library.md): the clip list beside the open clip's captions */
+  .app.ui { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); margin-top: var(--s-7); background: var(--u-bg); border: 1px solid var(--u-border); border-radius: var(--u-r); box-shadow: var(--u-shadow); }
+  .app > .app__pane { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+  .app > .app__pane + .app__pane { border-left: 1px solid var(--u-line); }
+  .app > .app__pane > .ui-panel { width: 100%; border: 0; border-radius: 0; box-shadow: none; }
+  .app > .app__pane::after { content: ""; position: absolute; inset: auto 0 0 0; height: 64px; background: linear-gradient(transparent, var(--u-bg)); pointer-events: none; }
+  /* the open clip's captions fill their pane; the note keeps a margin of its own at the right */
+  .app .ui-doc { width: 100%; padding: 8px 24px 0 8px; padding-right: 248px; }
+  .app .ui-doc__page { border: 0; box-shadow: none; border-radius: 0; background: transparent; }
+  .app .ui-doc__note { right: 24px; top: 40px; }
+  @media (max-width: 639px) { .app .ui-doc { padding-right: 8px; } .app .ui-doc__note { display: none; } }
+  @media (min-width: 1024px) and (max-width: 1279px) { .app.ui { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); } }
+  @media (max-width: 1023px) {
+    .app.ui { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+    .app > .app__pane--list { max-height: 252px; }
+    .app > .app__pane--list::after { display: none; }
+    .app .ui-win__side { display: none; }
+    .app .ui-win__body { grid-template-columns: minmax(0, 1fr); }
+    .app > .app__pane + .app__pane { border-left: 0; border-top: 1px solid var(--u-line); }
+  }
+  @media (max-width: 639px) {
+    .app.ui { grid-template-rows: minmax(0, 1fr); }
+    .app > .app__pane--list { display: none; }
+    .app > .app__pane + .app__pane { border-top: 0; }
+  }
+
+  /* the posting diagram's panel, and the four jobs' panels */
+  #more .panel { --p-h: 300px; }
+  #questions .panel { --p-h: 100%; }
+  @media (min-width: 640px) and (max-width: 1023px) { #more .panel { --p-h: calc(100svh - 540px); } }
+  @media (max-width: 639px) { #more .panel { --p-h: 164px; } #more .ui-chat__day { display: none; } #more .stage { --fade-h: 40px; } }
 </style>
 </head>
 <body>
-<main>
-<header><img src="icon-1024.png" alt=""><a href="./">Clipper</a>
-<nav><a href="terms.html">Terms</a><a href="privacy.html">Privacy</a></nav></header>
-<h1>Clipper</h1>
-<p>Clipper is a personal tool that turns long gaming videos and streams into short vertical clips with captions.
-It runs on its owner's own computer and is not offered to the public.</p>
-<p>When its owner approves a clip, Clipper can send it to the owner's own accounts: YouTube Shorts, Instagram Reels,
-a Facebook Page, and TikTok, where it arrives as a draft in the TikTok inbox for the owner to review and post in the TikTok app.</p>
-<p>Clipper only ever posts to accounts its owner has connected, and only clips its owner has approved.</p>
-<p class="meta"><a href="terms.html">Terms of Service</a> and <a href="privacy.html">Privacy Policy</a></p>
+<!-- type: software (site-kind software): Clipper, a personal clipping app for gaming streams, not offered to the public
+     deal: hero collage, nav nav-centre, close close-type, footer footer-statement, rhythm dark-band, buttons arrow,
+           mark: the client's own logo (dealt dots, replaced), lit ground sage, grounds none
+     palette: the client's own colours through start.mjs brand (night #161a2e, paper #eef0f7, sunset #ff6b8b from its
+              icon and app); the dealt walnut-tan clashed with the navy and pink logo. Type: instrument (Instrument Sans + DM Mono)
+     effect: fluted-glass in the hero frame; card grounds: silk-folds (#more)
+     moments: letters-assemble in #approval (the one promise a platform reviewer looks for, set large),
+              line-carries-colour in #posting (the page turns to the light band where clips leave the Mac)
+     screens: hero 1, clips 1, approval 1, moments 1, posting 1, more 2, questions 1, footer 1 -->
+<header class="nav nav--centre">
+  <div class="wrap nav__bar">
+    <a class="skip-link" href="#top">Skip to content</a>
+    <a class="nav__logo" href="#top"><svg width="40" height="10" viewBox="176 432 672 160" aria-hidden="true"><rect x="176" y="432" width="672" height="160" rx="80" fill="#2a3050"/><rect x="336" y="432" width="256" height="160" rx="80" fill="#ff6b8b"/></svg>Clipper</a>
+    <nav class="nav__links" aria-label="Main">
+      <div class="nav__item"><a class="nav__link" href="#clips">Clips</a></div>
+      <div class="nav__item"><a class="nav__link" href="#moments">Moments</a></div>
+      <div class="nav__item">
+        <a class="nav__link" href="#posting">Posting <svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <div class="nav__menu">
+          <div class="wrap grid">
+            <div class="menu-col span-3">
+              <p class="t-label">Before a clip goes</p>
+              <a href="#approval">Approval<span>Nothing posts without it</span></a>
+              <a href="#more">Final check<span>File, size, sound and length</span></a>
+            </div>
+            <div class="menu-col span-3">
+              <p class="t-label">Where it goes</p>
+              <a href="#posting">Platforms<span>YouTube, Instagram, Facebook, TikTok</span></a>
+              <a href="#questions">Accounts<span>Connect, disconnect, remove access</span></a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="nav__item"><a class="nav__link" href="#questions">Questions</a></div>
+    </nav>
+    <div class="nav__actions">
+      <a class="btn btn--primary" href="privacy.html">Privacy policy<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
+    </div>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Menu">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 5h14M2 13h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero hero--collage" data-enter aria-labelledby="hero-h">
+    <div class="wrap"><div class="hero-text grid hero__grid">
+      <div class="hero__text span-5">
+        <h1 id="hero-h">Personal clipping app for gaming streams</h1>
+        <p class="hero__lead">Clipper turns a long YouTube, Twitch or Kick video into 10 to 15 captioned 9:16 clips. It runs on its owner's Mac and is not offered to the public.</p>
+        <div class="btn-row"><a class="btn btn--primary" href="privacy.html">Privacy policy<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a><a class="btn btn--secondary" href="terms.html">Terms of service</a></div>
+        <p class="hero__proof">Posts approved clips to YouTube, Instagram, Facebook and TikTok.</p>
+      </div>
+      <div class="hero__art span-6 start-7" role="img" aria-label="Clipper's video queue with six streams at different steps, and a finished video with 12 clips" data-fx="fluted-glass" data-fx-seed="31" data-fx-palette='{"bg":"#cdd6c6","surface":"#dce3d6","ink":"#262d24","accent":"#6c8e63"}'>
+        <div class="ly-piece ly-piece--main d-win" aria-hidden="true">
+          <div class="d-win__bar"><span class="d-win__dots"><i></i><i></i><i></i></span><span>Clipper · Launch desk</span></div>
+          <div class="d-win__body">
+            <div class="d-side">
+              <span><i></i>Clip wall</span><span><i></i>Studio</span><span class="is-on"><i></i>Launch desk</span><span><i></i>Accounts</span>
+              <span class="d-side__label">Watched</span><span><i></i>Twitch channel</span><span><i></i>YouTube channel</span>
+            </div>
+            <div class="d-main">
+              <div class="d-main__head"><h4>Videos</h4><span class="d-btn">Add links</span></div>
+              <div class="d-tabs"><span class="is-on">All 6</span><span>Working 3</span><span>Done 3</span></div>
+              <div class="d-rows">
+                <div class="d-row"><span class="d-thumb"><img data-icon="twitch" src="assets/icons/twitch.svg" alt="" width="24" height="24"></span><div><b>Ranked grind, day 3</b><small>Twitch VOD · 3 h 12 min</small></div><span class="num">12</span><span class="d-chip">Clips ready</span></div>
+                <div class="d-row"><span class="d-thumb"><img data-icon="youtube" src="assets/icons/youtube.svg" alt="" width="24" height="24"></span><div><b>Late-night horror run</b><small>YouTube stream · 2 h 40 min</small></div><span class="num">10</span><span class="d-chip">Clips ready</span></div>
+                <div class="d-row"><span class="d-thumb"><img data-icon="si:kick" src="assets/icons/kick.svg" alt="" width="24" height="24"></span><div><b>Co-op raid with friends</b><small>Kick VOD · 4 h 05 min</small></div><span class="num">8</span><span class="d-chip d-chip--low">Best moments</span></div>
+                <div class="d-row"><span class="d-thumb"><img data-icon="youtube" src="assets/icons/youtube.svg" alt="" width="24" height="24"></span><div><b>Speedrun practice</b><small>YouTube video · 58 min</small></div><span class="num">0</span><span class="d-chip d-chip--low">Speech to text</span></div>
+                <div class="d-row"><span class="d-thumb"><img data-icon="twitch" src="assets/icons/twitch.svg" alt="" width="24" height="24"></span><div><b>Open-world heist</b><small>Twitch VOD · 5 h 21 min</small></div><span class="num">0</span><span class="d-chip d-chip--low">Downloading</span></div>
+                <div class="d-row"><span class="d-thumb"><img data-icon="youtube" src="assets/icons/youtube.svg" alt="" width="24" height="24"></span><div><b>Patch day first look</b><small>YouTube stream · 1 h 47 min</small></div><span class="num">10</span><span class="d-chip">Clips ready</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ly-piece ly-piece--note d-card" aria-hidden="true" data-ly-steps="700">
+          <div class="d-card__row"><h5>Ranked grind, day 3</h5><span class="d-chip" data-step data-step-at="4">12 clips</span></div>
+          <div class="d-note__line" data-step><i>✓</i><span>Transcript of <b>3 h 12 min</b> read</span></div>
+          <div class="d-note__line" data-step><i>✓</i><span>Cutscenes left out after the picture check</span></div>
+          <div class="d-note__line" data-step><i>✓</i><span><b>91%</b> of caption words confirmed</span></div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <section class="section" id="clips" aria-labelledby="clips-h">
+    <div class="wrap">
+      <div class="grid">
+        <h2 id="clips-h" class="span-5">Clipper's clip list, best first</h2>
+        <p class="span-6 start-7">Clips are ranked best first on five marks, from the first three seconds to the payoff. Open one to read its captions word by word before it goes anywhere. <a class="link" href="#posting">See where clips go</a></p>
+      </div>
+      <div class="ui app fill" role="img" aria-label="Clipper's clip list for one video beside clip 4, whose captions are marked where a second listen heard a word differently" data-ui-pause-host>
+        <div class="app__pane app__pane--list">
+          <div class="ui ui-panel ui-win" data-ui="window" data-open="Approved" data-work="Checking" data-done="Scheduled">
+            <div class="ui-win__bar">
+              <span class="ui-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span class="ui-win__crumb"><svg class="ui-brand" aria-hidden="true" viewBox="176 432 672 160"><rect x="176" y="432" width="672" height="160" rx="80" fill="currentColor" opacity=".35"/><rect x="336" y="432" width="256" height="160" rx="80" fill="currentColor"/></svg>Ranked grind, day 3 <i>/</i> <b>Clips</b></span>
+              <span class="ui-spacer"></span>
+              <span class="ui-win__search" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg><span class="ui-win__ph">Search</span><span class="ui-kbd">/</span></span>
+            </div>
+            <div class="ui-win__body">
+              <nav class="ui-win__side" aria-hidden="true">
+                <span class="ui-win__nav is-on"><svg class="ui-icon" viewBox="0 0 16 16"><rect x="4.5" y="2" width="7" height="12" rx="1.5"/></svg>Clips<em>12</em></span>
+                <span class="ui-win__nav"><svg class="ui-icon" viewBox="0 0 16 16"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg>Approved<em>4</em></span>
+                <span class="ui-win__nav"><svg class="ui-icon" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3l2 1.5"/></svg>Scheduled<em>3</em></span>
+                <span class="ui-win__nav"><svg class="ui-icon" viewBox="0 0 16 16"><path d="M8 13V3.5M3.8 7.5 8 3.3l4.2 4.2"/></svg>Posted<em>2</em></span>
+                <span class="ui-win__label">Order</span>
+                <span class="ui-win__nav"><span class="ui-win__hash">#</span>Best first</span>
+                <span class="ui-win__nav"><span class="ui-win__hash">#</span>Top performing</span>
+              </nav>
+              <div class="ui-win__main">
+                <div class="ui-win__cols" aria-hidden="true"><span>Clip</span><span>Title</span><span>Status</span><span>Length</span></div>
+                <ul class="ui-win__rows">
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="1">92</span><span class="ui-win__who">Clip 1</span><span class="ui-win__sub">Clutch with one shot left</span><span class="ui-win__st is-done" data-st>Posted</span><span class="ui-win__age">1:18</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="3">88</span><span class="ui-win__who">Clip 2</span><span class="ui-win__sub">Chat calls the flank early</span><span class="ui-win__st is-done" data-st>Scheduled</span><span class="ui-win__age">2:05</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="4">86</span><span class="ui-win__who">Clip 3</span><span class="ui-win__sub">Rage quit that never happened</span><span class="ui-win__st" data-st>Approved</span><span class="ui-win__age">1:42</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="2">84</span><span class="ui-win__who">Clip 4</span><span class="ui-win__sub">Last circle, one shot left</span><span class="ui-win__st is-you" data-st>Captions</span><span class="ui-win__age">2:41</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="5">81</span><span class="ui-win__who">Clip 5</span><span class="ui-win__sub">The duo that would not die</span><span class="ui-win__st" data-st>Approved</span><span class="ui-win__age">1:09</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="3">79</span><span class="ui-win__who">Clip 6</span><span class="ui-win__sub">Promotion game, final round</span><span class="ui-win__st" data-st>Approved</span><span class="ui-win__age">3:12</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="1">77</span><span class="ui-win__who">Clip 7</span><span class="ui-win__sub">Reading chat mid-fight</span><span class="ui-win__st is-done" data-st>Posted</span><span class="ui-win__age">0:58</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="4">74</span><span class="ui-win__who">Clip 8</span><span class="ui-win__sub">Loadout talk before the drop</span><span class="ui-win__st is-done" data-st>Scheduled</span><span class="ui-win__age">1:36</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="2">71</span><span class="ui-win__who">Clip 9</span><span class="ui-win__sub">Third place by one point</span><span class="ui-win__st" data-st>Approved</span><span class="ui-win__age">2:22</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="5">68</span><span class="ui-win__who">Clip 10</span><span class="ui-win__sub">Warm-up lobby jokes</span><span class="ui-win__st is-done" data-st>Scheduled</span><span class="ui-win__age">1:15</span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="app__pane app__pane--open" data-ui-loop>
+          <div class="ui ui-doc" data-ui="doc">
+            <article class="ui-doc__page">
+              <div class="ui-doc__label">Clip 4 captions · 91% confirmed, 22 words to check</div>
+              <div class="ui-doc__title">Last circle, one shot left</div>
+              <div class="ui-doc__text">Okay, one shot left. He is on the ridge and I can hear him <mark class="ui-doc__mark is-on">reloading</mark> behind the rock.</div>
+              <div class="ui-doc__text">Chat is going wild right now. If I miss this, the whole run is over and we start again tomorrow.</div>
+              <div class="ui-doc__text">Wait for it. He has to peek the <mark class="ui-doc__mark" data-kind="Not heard" data-msg="The second listen did not hear this word." data-where="1:12 in the clip">left</mark> side, and that is the one.</div>
+              <div class="ui-doc__text">No way. First win of the night. Somebody clip that, I need to see it again.</div>
+              <div class="ui-doc__text">That is three days of ranked for one circle. I am not even mad about the first two games now.</div>
+              <div class="ui-doc__text">Okay, one more queue and then we look at the clips from today.</div>
+            </article>
+            <aside class="ui-doc__note ui-panel is-on" aria-live="polite">
+              <div class="ui-doc__kind"><span class="ui-doc__dot"></span><span data-doc-kind>Heard differently</span></div>
+              <div class="ui-doc__msg" data-doc-msg>The second listen heard “reloaded”.</div>
+              <div class="ui-doc__where" data-doc-where>0:41 in the clip</div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="approval" data-moment="letters-assemble" aria-labelledby="approval-h">
+    <div class="wrap">
+      <h2 id="approval-h" class="mo-la__type">Nothing posts without approval</h2>
+      <div class="grid grid--top">
+        <p class="mo-la__sub span-6">Clipper sends a clip only after its owner ticks it, and only to accounts its owner has connected. On TikTok it arrives as a draft.</p>
+        <div class="mo-la__sub span-5 start-7 stack-2">
+          <p>Post: tick each account, then Save</p>
+          <p>Untick to take a clip out again</p>
+          <p>Clips from watched channels wait too</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="moments" aria-labelledby="moments-h">
+    <div class="wrap">
+      <div class="grid fill">
+        <div class="span-5 stack-6">
+          <h2 id="moments-h">Picks the moments worth clipping</h2>
+          <p class="t-lead">The transcript goes to the AI service its owner chose, beside chat bursts, loudness jumps and YouTube's most replayed parts. Four frames of each clip then catch cutscenes and menus.</p>
+        </div>
+        <div class="frame frame--split frame--fill span-6 start-7">
+          <div class="dg" data-dg-still data-diagram><script type="application/json">{"layout": "fanin", "alt": "The transcript, chat replay, loudness, YouTube's most replayed parts and the picture go to the AI pick, which keeps 10 to 15 clips.", "sources": [{"label": "Transcript", "icon": "ui:captions", "sub": "Words"}, {"label": "Chat replay", "icon": "ui:message-square", "sub": "Bursts"}, {"label": "Loudness", "icon": "ui:volume-2", "sub": "Jumps"}, {"label": "Most replayed", "icon": "youtube", "sub": "Top tenth"}, {"label": "Picture", "icon": "ui:image", "sub": "Changes"}], "target": {"label": "AI pick", "icon": "ui:sparkles"}, "then": {"label": "10 to 15 clips", "icon": "ui:film", "meta": "best first"}}</script></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section ground-inverse" id="posting" data-moment="line-carries-colour" data-moment-opts='{"from": "base"}' aria-labelledby="posting-h">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="posting-h">Clipper posts approved clips on a schedule. <span class="muted">To YouTube, Instagram, Facebook and TikTok.</span></h2>
+        <p>From 9 am to 11 pm by default, 2 hours apart, at most 6 a day for each account. TikTok gets drafts.</p>
+      </div>
+      <div class="frame fill">
+        <div class="dg" data-diagram><script type="application/json">{"layout": "bowtie", "alt": "Videos from YouTube, Twitch and Kick become clips in Clipper, which posts them to YouTube Shorts, Instagram Reels, a Facebook Page and TikTok drafts.", "sources": [{"label": "YouTube", "icon": "youtube", "sub": "Links"}, {"label": "Twitch", "icon": "twitch", "sub": "VODs"}, {"label": "Kick", "icon": "si:kick", "sub": "VODs"}], "core": {"label": "Clipper", "icon": "ui:scissors"}, "targets": [{"label": "YouTube", "icon": "youtube", "sub": "Shorts"}, {"label": "Instagram", "icon": "instagram", "sub": "Reels"}, {"label": "Facebook", "icon": "facebook", "sub": "Page"}, {"label": "TikTok", "icon": "tiktok", "sub": "Drafts"}]}</script></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section g2" id="more" aria-labelledby="more-h">
+    <div class="wrap">
+      <div class="group">
+        <div class="section-head">
+          <h2 id="more-h">Clipper's other jobs</h2>
+        </div>
+        <div class="grid">
+          <article class="card card--row card--open span-6 m-nolift">
+            <h3>Checks each 1080 × 1920 file</h3>
+            <p>Size, sound, length and title, right before upload. A clip that fails stays on the Mac.</p>
+            <div class="panel" data-ui-pause-host data-fx="silk-folds" data-fx-seed="12" data-fx-params='{"drift":0}' data-fx-palette='{"bg":"#cdd6c6","surface":"#dce3d6","ink":"#262d24","accent":"#6c8e63"}'>
+              <div class="stage"><div class="at-rise fit" style="--fit-max:340px;--ax:max(24px, 50% - 170px);--ay:40px;--ay-sm:16px" data-ui-loop>
+                <div class="ui ui-panel ui-checks" data-ui="checklist">
+                  <div class="ui-checks__head">
+                    <div class="ui-title">Final check, clip 4</div>
+                    <span class="ui-spacer"></span>
+                    <div class="ui-meta" data-checks-count>2 of 5</div>
+                  </div>
+                  <div class="ui-checks__bar"><i data-checks-bar style="--k:0.4"></i></div>
+                  <ul class="ui-checks__list">
+                    <li class="ui-check is-done"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">File is there and readable</span></li>
+                    <li class="ui-check is-done"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">1080 × 1920</span></li>
+                    <li class="ui-check"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Has sound</span></li>
+                    <li class="ui-check"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">2:41 fits YouTube Shorts</span></li>
+                    <li class="ui-check"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Has a title</span></li>
+                  </ul>
+                </div>
+              </div></div>
+            </div>
+          </article>
+          <article class="card card--row card--open span-6 m-nolift">
+            <h3>Makes 4 translated versions</h3>
+            <p>Spanish, Portuguese, German and Russian captions and titles, each timed to its sentence.</p>
+            <div class="panel" data-fx="silk-folds" data-fx-seed="27" data-fx-params='{"drift":0}' data-fx-palette='{"bg":"#c6d3df","surface":"#d6e0e9","ink":"#25303a","accent":"#7f9fbd","tone":1}'>
+              <div class="stage stage--fade-br"><div class="at-corner wide" style="--w:680px;--ax:28px;--ay:32px">
+                <div class="ui ui-files" data-ui="files" data-reading="Making {n} of {total}">
+                  <div class="ui-files__status"><span class="ui-dot"></span><span data-files-status>4 versions made</span></div>
+                  <ul class="ui-files__grid">
+                    <li class="ui-file is-done"><span class="ui-file__icon"><img data-icon="video" src="assets/icons/video.svg" alt="" width="24" height="24" loading="lazy"></span><span class="ui-file__name">clip-04-es.mp4</span><span class="ui-file__kind">Spanish</span><span class="ui-file__bar"><i></i></span><span class="ui-file__check"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 8.2 2.3 2.3 4.7-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></li>
+                    <li class="ui-file is-done"><span class="ui-file__icon"><img data-icon="video" src="assets/icons/video.svg" alt="" width="24" height="24" loading="lazy"></span><span class="ui-file__name">clip-04-pt.mp4</span><span class="ui-file__kind">Portuguese</span><span class="ui-file__bar"><i></i></span><span class="ui-file__check"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 8.2 2.3 2.3 4.7-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></li>
+                    <li class="ui-file is-done"><span class="ui-file__icon"><img data-icon="video" src="assets/icons/video.svg" alt="" width="24" height="24" loading="lazy"></span><span class="ui-file__name">clip-04-de.mp4</span><span class="ui-file__kind">German</span><span class="ui-file__bar"><i></i></span><span class="ui-file__check"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 8.2 2.3 2.3 4.7-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></li>
+                    <li class="ui-file is-done"><span class="ui-file__icon"><img data-icon="video" src="assets/icons/video.svg" alt="" width="24" height="24" loading="lazy"></span><span class="ui-file__name">clip-04-ru.mp4</span><span class="ui-file__kind">Russian</span><span class="ui-file__bar"><i></i></span><span class="ui-file__check"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 8.2 2.3 2.3 4.7-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></li>
+                    <li class="ui-file is-done"><span class="ui-file__icon"><img data-icon="video" src="assets/icons/video.svg" alt="" width="24" height="24" loading="lazy"></span><span class="ui-file__name">clip-04.mp4</span><span class="ui-file__kind">The clip</span><span class="ui-file__bar"><i></i></span><span class="ui-file__check"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 8.2 2.3 2.3 4.7-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></li>
+                    <li class="ui-file is-done"><span class="ui-file__icon"><img data-icon="video" src="assets/icons/video.svg" alt="" width="24" height="24" loading="lazy"></span><span class="ui-file__name">reel.mp4</span><span class="ui-file__kind">Highlight reel</span><span class="ui-file__bar"><i></i></span><span class="ui-file__check"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 8.2 2.3 2.3 4.7-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></li>
+                  </ul>
+                </div>
+              </div></div>
+            </div>
+          </article>
+        </div>
+      </div>
+      <div class="grid">
+        <article class="card card--row card--open span-6 m-nolift">
+          <h3>Clips each stream on watched channels</h3>
+          <p>Each ended Twitch or YouTube stream is clipped. While live: 3 clips every 30 minutes.</p>
+          <div class="panel" data-fx="silk-folds" data-fx-seed="44" data-fx-params='{"drift":0}' data-fx-palette='{"bg":"#d9ccb7","surface":"#e9e0d2","ink":"#2a2622","accent":"#a8794a"}'>
+            <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:380px;--ax:max(24px, 50% - 190px);--ay:calc(100% - 180px);--ay-sm:calc(100% - 180px)">
+              <div class="ui ui-notify" data-ui="notify">
+                <ul class="ui-notify__list" data-notify-list>
+                  <li class="ui-note"><span class="ui-note__ico"><img data-icon="twitch" src="assets/icons/twitch.svg" alt="" width="24" height="24" loading="lazy"></span><span class="ui-note__text"><span class="ui-note__title">Stream ended, clipping<time>now</time></span><span class="ui-note__body">Late-night horror, 4 h 05 min</span></span></li>
+                  <li class="ui-note"><span class="ui-note__ico"><svg class="ui-icon" viewBox="0 0 16 16"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg></span><span class="ui-note__text"><span class="ui-note__title">3 clips from the last 30 minutes<time>30m</time></span><span class="ui-note__body">Clip while live, part 8</span></span></li>
+                  <li class="ui-note"><span class="ui-note__ico"><img data-icon="youtube" src="assets/icons/youtube.svg" alt="" width="24" height="24" loading="lazy"></span><span class="ui-note__text"><span class="ui-note__title">Live now<time>2h</time></span><span class="ui-note__body">Clipped once the stream ends</span></span></li>
+                </ul>
+              </div>
+            </div></div>
+          </div>
+        </article>
+        <article class="card card--row card--open span-6 m-nolift">
+          <h3>Works with Claude through MCP</h3>
+          <p>Claude can make clips and check posts. Posting needs a code from the final check.</p>
+          <div class="panel" data-fx="silk-folds" data-fx-seed="58" data-fx-params='{"drift":0}' data-fx-palette='{"bg":"#cdd6c6","surface":"#dce3d6","ink":"#262d24","accent":"#6c8e63"}'>
+            <div class="stage stage--fade-b"><div class="at-rise to-edge fit" style="--fit-max:400px;--ax:max(24px, 50% - 200px);--ay:48px;--ay-sm:16px">
+              <div class="ui ui-panel ui-chat" data-ui="chat">
+                <div class="ui-head"><img class="ui-agent" data-icon="claude" src="assets/icons/claude.svg" alt="" width="24" height="24" loading="lazy"><div class="ui-title">Claude</div><span class="ui-spacer"></span></div>
+                <div class="ui-chat__body">
+                  <div class="ui-chat__day">Today, 18:20</div>
+                  <div class="ui-msg ui-msg--me" data-chat-q><span class="ui-msg__text">Queue clips 1 and 4 for YouTube and TikTok</span></div>
+                  <div class="ui-msg ui-msg--bot" data-chat-a>
+                    <span class="ui-msg__col">
+                      <span class="ui-chat__typing" aria-hidden="true"><i></i><i></i><i></i></span>
+                      <span class="ui-chat__answer">Both pass the final check, and clip 4 runs <b>2:41</b>, under the Shorts limit. Post them on the schedule?</span>
+                      <span class="ui-chat__srcs"><span class="ui-chat__src"><svg class="ui-icon" viewBox="0 0 16 16"><path d="m3.5 8.4 2.8 2.8 6.2-6.4"/></svg>check_post</span></span>
+                    </span>
+                  </div>
+                </div>
+                <div class="ui-chat__input"><span class="ui-chat__ph">Write a message</span><span class="ui-chat__send" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14"><path d="M8 13V3.5M3.8 7.5 8 3.3l4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+              </div>
+            </div></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="questions" style="--hm: 2" aria-labelledby="questions-h">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="questions-h">Questions about Clipper</h2>
+      </div>
+      <div class="grid grid--top fill">
+        <div class="faq span-5">
+          <div class="faq__item"><h3>Can I sign up for Clipper?</h3><p>No. It runs on its owner's computer and is not offered to the public.</p></div>
+          <div class="faq__item"><h3>How does Clipper post to TikTok?</h3><p>As a draft in the TikTok inbox, which the owner publishes in the app.</p></div>
+          <div class="faq__item"><h3>Where does Clipper keep tokens and clips?</h3><p>On its owner's computer, in a file only they can read. No servers, no analytics.</p></div>
+          <div class="faq__item"><h3>How do I remove Clipper's access?</h3><p>Disconnect it in Clipper, or in the platform's own settings.</p></div>
+        </div>
+        <div class="panel frame--fill span-6 start-7" role="img" aria-label="Clipper's Accounts page with YouTube, TikTok, Instagram and Facebook connected">
+          <div class="stage"><div class="at-rise fit" style="--fit-max:380px;--ax:max(24px, 50% - 190px);--ay:40px;--ay-sm:24px" aria-hidden="true">
+              <div class="ui ui-panel ui-apps" data-ui="integrations">
+                <div class="ui-head">
+                  <div class="ui-title">Accounts</div>
+                  <span class="ui-spacer"></span>
+                  <div class="ui-meta" data-apps-count>3 connected</div>
+                </div>
+                <ul class="ui-apps__list">
+                  <li class="ui-app is-on">
+                    <span class="ui-logo ui-logo--sm"><img data-icon="youtube" src="assets/icons/youtube.svg" alt="" width="24" height="24" loading="lazy"></span>
+                    <span class="ui-app__text"><span class="ui-app__name">YouTube</span><span class="ui-app__sub">Shorts, scheduled in Studio</span></span>
+                    <span class="ui-app__state"><span class="ui-chip ui-app__on">Connected</span><button class="ui-btn ui-btn--ghost ui-btn--sm ui-app__connect" type="button" tabindex="-1"><span class="ui-spin ui-app__spin" aria-hidden="true"></span><span>Connect</span></button></span>
+                  </li>
+                  <li class="ui-app" data-apps-target>
+                    <span class="ui-logo ui-logo--sm"><img data-icon="tiktok" src="assets/icons/tiktok.svg" alt="" width="24" height="24" loading="lazy"></span>
+                    <span class="ui-app__text"><span class="ui-app__name">TikTok</span><span class="ui-app__sub">Drafts in the inbox</span></span>
+                    <span class="ui-app__state"><span class="ui-chip ui-app__on">Connected</span><button class="ui-btn ui-btn--ghost ui-btn--sm ui-app__connect" type="button" tabindex="-1"><span class="ui-spin ui-app__spin" aria-hidden="true"></span><span>Connect</span></button></span>
+                  </li>
+                  <li class="ui-app is-on">
+                    <span class="ui-logo ui-logo--sm"><img data-icon="instagram" src="assets/icons/instagram.svg" alt="" width="24" height="24" loading="lazy"></span>
+                    <span class="ui-app__text"><span class="ui-app__name">Instagram</span><span class="ui-app__sub">Reels</span></span>
+                    <span class="ui-app__state"><span class="ui-chip ui-app__on">Connected</span><button class="ui-btn ui-btn--ghost ui-btn--sm ui-app__connect" type="button" tabindex="-1"><span class="ui-spin ui-app__spin" aria-hidden="true"></span><span>Connect</span></button></span>
+                  </li>
+                  <li class="ui-app is-on">
+                    <span class="ui-logo ui-logo--sm"><img data-icon="facebook" src="assets/icons/facebook.svg" alt="" width="24" height="24" loading="lazy"></span>
+                    <span class="ui-app__text"><span class="ui-app__name">Facebook</span><span class="ui-app__sub">One Page</span></span>
+                    <span class="ui-app__state"><span class="ui-chip ui-app__on">Connected</span><button class="ui-btn ui-btn--ghost ui-btn--sm ui-app__connect" type="button" tabindex="-1"><span class="ui-spin ui-app__spin" aria-hidden="true"></span><span>Connect</span></button></span>
+                  </li>
+                </ul>
+              </div>
+            </div></div>
+        </div>
+      </div>
+    </div>
+  </section>
 </main>
+
+<footer class="footer closing footer--statement g2m" id="contact" aria-labelledby="close-h">
+  <div class="wrap">
+    <div class="closing__cta close--type">
+      <div class="section-head">
+        <h2 id="close-h">How Clipper handles accounts and data</h2>
+        <p class="t-small muted">Tokens, clips and settings stay on the computer where Clipper runs.</p>
+      </div>
+      <a class="btn btn--primary btn--xl btn--wide" href="privacy.html">Privacy policy<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
+    </div>
+    <div class="closing__links">
+      <div class="grid">
+        <div class="span-4 stack-4">
+          <a class="nav__logo" href="#top"><svg width="40" height="10" viewBox="176 432 672 160" aria-hidden="true"><rect x="176" y="432" width="672" height="160" rx="80" fill="#2a3050"/><rect x="336" y="432" width="256" height="160" rx="80" fill="#ff6b8b"/></svg>Clipper</a>
+          <p class="footer__lede">A personal clipping app for gaming streams, not offered to the public.</p>
+        </div>
+        <div class="span-2 start-9 footer__col"><h3>Clipper</h3><ul><li><a href="#clips">Clips</a></li><li><a href="#moments">Moments</a></li><li><a href="#posting">Posting</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Before posting</h3><ul><li><a href="#approval">Approval</a></li><li><a href="#more">Final check</a></li><li><a href="#questions">Questions</a></li></ul></div>
+      </div>
+      <div class="footer__legal">
+        <span>&copy; 2026 Clipper &nbsp; <a href="privacy.html">Privacy</a> &nbsp; <a href="terms.html">Terms</a></span>
+        <span>Product names and logos are trademarks of their owners.</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<nav class="actionbar" aria-label="Quick actions">
+  <a class="btn btn--primary" href="privacy.html">Privacy policy</a>
+</nav>
+
+<script type="module" src="assets/system.js"></script>
+<script type="module" src="assets/motion/motion.js"></script>
+<script type="module" src="assets/layout/layout.js"></script>
+<script type="module" src="assets/diagrams/mount.js"></script>
 </body>
 </html>
